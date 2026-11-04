@@ -224,7 +224,7 @@ def upsert_to_pinecone(
         from pinecone import Pinecone, ServerlessSpec
         from fastembed import TextEmbedding
     except ImportError as e:
-        print(f"Error: Missing dependency for Pinecone upsert ({e}). Run: pip install pinecone-client fastembed")
+        print(f"Error: Missing dependency for Pinecone upsert ({e}). Run: pip install pinecone fastembed")
         sys.exit(1)
 
     print(f"\nInitializing Pinecone Client...")
