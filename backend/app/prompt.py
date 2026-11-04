@@ -104,7 +104,10 @@ Please deliver your counsel to the seeker with your characteristic Citadel eloqu
 
     if conversation_history:
         for turn in conversation_history[-6:]:
-            messages.append({"role": turn.role, "content": turn.content})
+            role = getattr(turn, 'role', None) or (turn.get('role') if isinstance(turn, dict) else 'user')
+            content = getattr(turn, 'content', None) or (turn.get('content') if isinstance(turn, dict) else '')
+            if role and content:
+                messages.append({"role": str(role), "content": str(content)})
 
     messages.append({"role": "user", "content": user_content})
     return messages

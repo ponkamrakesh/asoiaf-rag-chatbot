@@ -58,6 +58,8 @@ def chat_endpoint(request: ChatRequest):
         response = engine.query(request)
         return response
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         print(f"[API Error] /api/chat error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=f"Citadel Engine Error: {str(e)}")
 

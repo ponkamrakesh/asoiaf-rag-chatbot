@@ -151,7 +151,26 @@ class RAGEngine:
                     top_k=candidate_k,
                     include_metadata=True
                 )
-                candidate_matches = response.get("matches", [])
+                # Normalize Pinecone v3/v4/v5 objects to standard dictionaries
+                raw_matches = []
+                if hasattr(response, "to_dict"):
+                    raw_matches = response.to_dict().get("matches", [])
+                elif isinstance(response, dict):
+                    raw_matches = response.get("matches", [])
+                else:
+                    raw_matches = getattr(response, "matches", [])
+
+                for m in raw_matches:
+                    if hasattr(m, "to_dict"):
+                        candidate_matches.append(m.to_dict())
+                    elif isinstance(m, dict):
+                        candidate_matches.append(m)
+                    else:
+                        candidate_matches.append({
+                            "id": getattr(m, "id", ""),
+                            "score": getattr(m, "score", 0.0),
+                            "metadata": getattr(m, "metadata", {}) or {}
+                        })
             except Exception as e:
                 print(f"[RAG Engine] Pinecone query error: {e}")
         latencies.pinecone_search_ms = round((time.perf_counter() - t_pc_start) * 1000, 2)

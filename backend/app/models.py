@@ -60,9 +60,10 @@ class QueryMetrics(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, description="User's query")
-    conversation_history: Optional[List[ChatMessage]] = Field(default=[], description="Recent conversation turns")
-    candidate_top_k: Optional[int] = Field(default=15, ge=5, le=30, description="Broad candidate pool from Pinecone")
-    final_top_n: Optional[int] = Field(default=6, ge=1, le=10, description="Elite re-ranked chunks fed to LLM")
+    conversation_history: Optional[List[Any]] = Field(default=[], description="Recent conversation turns")
+    candidate_top_k: Optional[int] = Field(default=15, description="Broad candidate pool from Pinecone")
+    final_top_n: Optional[int] = Field(default=6, description="Elite re-ranked chunks fed to LLM")
+    top_k: Optional[int] = Field(default=6, description="Backwards compatible top_k")
 
 
 class ChatResponse(BaseModel):
