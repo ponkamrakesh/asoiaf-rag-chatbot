@@ -17,5 +17,5 @@ services:
       - key: PINECONE_INDEX_NAME
         value: asoiaf-books
       - key: GROQ_MODEL
-        value: llama-3.3-70b-versatile
+        value: llama-3.1-8b-instant
 

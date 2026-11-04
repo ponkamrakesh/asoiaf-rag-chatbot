@@ -225,20 +225,35 @@ class RAGEngine:
         used_model = settings.GROQ_MODEL
 
         if self.groq_client:
-            try:
-                completion = self.groq_client.chat.completions.create(
-                    model=settings.GROQ_MODEL,
-                    messages=prompt_messages,
-                    temperature=0.35,
-                    max_tokens=1400,
-                )
-                answer_text = completion.choices[0].message.content
-                if completion.usage:
-                    prompt_tokens = completion.usage.prompt_tokens
-                    completion_tokens = completion.usage.completion_tokens
-            except Exception as e:
-                print(f"[RAG Engine] Groq API error: {e}")
-                answer_text = f"By my chain, the raven failed in its flight ({e}). Please verify your GROQ_API_KEY."
+            models_to_try = [settings.GROQ_MODEL]
+            if "llama-3.1-8b-instant" not in models_to_try:
+                models_to_try.append("llama-3.1-8b-instant")
+            if "llama3-8b-8192" not in models_to_try:
+                models_to_try.append("llama3-8b-8192")
+
+            last_err = None
+            for candidate_model in models_to_try:
+                try:
+                    completion = self.groq_client.chat.completions.create(
+                        model=candidate_model,
+                        messages=prompt_messages,
+                        temperature=0.35,
+                        max_tokens=1400,
+                    )
+                    answer_text = completion.choices[0].message.content
+                    used_model = candidate_model
+                    if completion.usage:
+                        prompt_tokens = completion.usage.prompt_tokens
+                        completion_tokens = completion.usage.completion_tokens
+                    last_err = None
+                    break
+                except Exception as e:
+                    last_err = e
+                    print(f"[RAG Engine] Groq model '{candidate_model}' error: {e}. Trying next fallback...")
+
+            if last_err:
+                print(f"[RAG Engine] All Groq model attempts failed: {last_err}")
+                answer_text = f"By my chain, the raven failed in its flight ({last_err}). Please verify your GROQ_API_KEY."
         else:
             answer_text = (
                 f"**[Citadel Archives Simulation Mode]**\n\n"
