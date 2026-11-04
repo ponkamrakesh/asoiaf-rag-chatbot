@@ -245,10 +245,18 @@ class RAGEngine:
 
         if self.groq_client:
             models_to_try = [settings.GROQ_MODEL]
-            if "llama-3.1-8b-instant" not in models_to_try:
-                models_to_try.append("llama-3.1-8b-instant")
-            if "llama3-8b-8192" not in models_to_try:
-                models_to_try.append("llama3-8b-8192")
+
+            # Dynamically fetch active models from the user's Groq account
+            try:
+                available = [m.id for m in self.groq_client.models.list().data]
+                for m_id in available:
+                    if m_id not in models_to_try:
+                        models_to_try.append(m_id)
+            except Exception as e:
+                # Static fallbacks (avoiding any decommissioned models)
+                for fallback in ["llama-3.1-8b-instant", "llama-3.3-70b-versatile"]:
+                    if fallback not in models_to_try:
+                        models_to_try.append(fallback)
 
             last_err = None
             for candidate_model in models_to_try:
@@ -268,7 +276,7 @@ class RAGEngine:
                     break
                 except Exception as e:
                     last_err = e
-                    print(f"[RAG Engine] Groq model '{candidate_model}' error: {e}. Trying next fallback...")
+                    print(f"[RAG Engine] Model '{candidate_model}' not available ({e}). Trying next available model...")
 
             if last_err:
                 print(f"[RAG Engine] All Groq model attempts failed: {last_err}")
